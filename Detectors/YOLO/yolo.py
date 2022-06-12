@@ -5,15 +5,7 @@ from .darknet import darknet
 
 class Yolo():
 
-    cfg_file=" "
-    weight_file =" "
-    namesfile = ""
-    datafile = ""
-    m=""
-    class_names=""
-    colors=""
-
-    def __init__(self, cfgfile, weightfile, name_file, data_file) -> None:
+    def __init__(self, cfgfile, weightfile, name_file, data_file):
         self.cfg_file,self.weight_file, self.namesfile ,self.datafile = cfgfile, weightfile, name_file, data_file
         self.load_model()
 
@@ -42,5 +34,4 @@ class Yolo():
         darknet.copy_image_from_bytes(darknet_image, image_resized.tobytes())
         detections = darknet.detect_image(self.m, self.class_names, darknet_image)
         res=darknet.draw_boxes(detections, image, self.colors)
-        # cv2.imshow("result",res)
         return detections, res

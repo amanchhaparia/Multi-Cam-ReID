@@ -1,4 +1,5 @@
 import numpy as np
+from requests import delete
 from ..track import Track
 from scipy.spatial import distance as dist
 
@@ -14,7 +15,6 @@ class Centroid_tracker():
         self.max_age = 10
         self.min_hits = 3
         self.thres_distance = 20
-        # self.centroids = []
 
     def add_track(self, id, bbox, centroid):
         """Create a centroid track object and adds to tracks list
@@ -27,17 +27,20 @@ class Centroid_tracker():
         - if hits > min_hits add track
         '''
 
-        track=centroid_track(id, bbox, centroid, 1, 0)
+        track = centroid_track(id, bbox, centroid, 1, 0)
         self.tracks.append(track)
         self.nextID +=1
+        print("added id ",track.id, "succesfully")
 
-    def delete_track(self,id):
+    def delete_track(self):
         """Deletes a centroid track object from tracks list if the max age is crossed.
         """
-        del self.tracks[id]
-        self.nextID -= 1
+        for track in self.tracks:
+            if(track.miss > self.max_age):
+                print("deleted id ",track.id, "succesfully")
+                self.tracks.remove(track)
 
-    def update(self, detections, id):
+    def update(self, detections):
         """Returns the active list of centroid track objects"""
         
         '''
@@ -49,12 +52,14 @@ class Centroid_tracker():
             - check if input centroids is less than last time, so some objects are lost, and icrease their miss and check if it >max_age deregister it.
                 - if not, then we new objects, so register them
         '''
-
+        if(detections==[] and self.tracks==[]):
+            return self.tracks
         if(detections==[] and self.tracks!=[]):
             print(id)
-            self.tracks[max(0, id-1)].miss=self.tracks[max(0, id-1)].miss+1
-            if(self.tracks[max(0, id-1)].miss>=self.max_age):
-                self.delete_track(max(0, id-1))
+            # increase every objects miss by 1
+            for track in self.tracks:
+                track.miss +=1
+            self.delete_track()
             return self.tracks
 
         inputCentroids = np.zeros((max(1, len(detections)), 2), dtype="int")
@@ -63,16 +68,16 @@ class Centroid_tracker():
             cX = int((detections[i][2][0]+ detections[i][2][1]) / 2.0)
             cY = int((detections[i][2][2] + detections[i][2][3]) / 2.0)
             inputCentroids[i] = (cX, cY)
-        objectId=[]
-        objectCentroid=[]
+        
+        objectId = []
+        objectCentroid = []
         if len(self.tracks) == 0:
             for i in range(0, len(inputCentroids)):
                 self.add_track(self.nextID, detections,inputCentroids[i])
-        else:
-           
-            for i in range(0,len(self.tracks)):
-                objectId.append(self.tracks[i].id)
-                objectCentroid.append(self.tracks[i].centroid)
+        else:      
+            for track in self.tracks:
+                objectId.append(track.id)
+                objectCentroid.append(track.centroid) 
             D = dist.cdist(np.array(objectCentroid), inputCentroids)
             rows = D.min(axis=1).argsort()
             cols = D.argmin(axis=1)[rows]
@@ -83,12 +88,8 @@ class Centroid_tracker():
                 # if we have already examined either the row or column value before, ignore it val
                 if row in usedRows or col in usedCols:
                     continue
-                print("ROW: ", row, "Object ID: ", objectId)
-                oid = objectId[row]
-                print("%%%%%%%% ",oid)
-                print(len(self.tracks))
-                self.tracks[min(len(self.tracks), oid )].centroid = inputCentroids[col]
-                self.tracks[min(len(self.tracks), oid )].miss = 0
+                self.tracks[row].centroid = inputCentroids[col]
+                self.tracks[row].miss = 0
                 # indicate that we have examined each of the row and column indexes, respectively
                 usedRows.add(row)
                 usedCols.add(col)
@@ -96,17 +97,16 @@ class Centroid_tracker():
             unusedCols = set(range(0, D.shape[1])).difference(usedCols)
             if D.shape[0] >= D.shape[1]:
             # loop over the unused row indexes
-                for row in unusedRows:
+                for row in unusedRows: 
                     # grab the object ID for the corresponding row index and increment the disappeared counter
-                    print("ROW: ", row, "Object ID: ", objectId)
-                    oid =objectId[row]
-                    print("%%%%%%%% ",oid)
-                    print(len(self.tracks))
-                    self.tracks[min(len(self.tracks), oid )].miss += 1
+                    self.tracks[row].miss += 1
                     # check to see if the number of consecutive frames the object has been marked "disappeared" for warrants deregistering the object
-                    if self.tracks[min(len(self.tracks), oid )].miss >= self.max_age:
-                        self.delete_track(oid)
+                    if self.tracks[row].miss >= self.max_age:
+                        self.delete_track()
+                        return self.tracks
             else:
                 for col in unusedCols:
-                    self.add_track(id,detections,inputCentroids[col])
+                    print(detections)
+                    print(inputCentroids[col])
+                    self.add_track(self.nextID, detections[col][2], inputCentroids[col])
         return self.tracks

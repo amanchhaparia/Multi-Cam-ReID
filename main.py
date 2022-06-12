@@ -7,12 +7,11 @@ import time
 from Trackers.centroid_tracker.centroid import Centroid_tracker
 from Detectors.YOLO import yolo
 if __name__ == "__main__":
+    
     # Add the arg parser
     
-
     # load the video
-    vs = VideoStream(src=0).start() 
-    time.sleep(2.0)
+    vs = cv2.VideoCapture(0)
 
     cfg_file = "Detectors/YOLO/darknet/cfg/yolov4.cfg"
     weight_file = "Detectors/YOLO/darknet/yolov4.weights"
@@ -34,7 +33,7 @@ if __name__ == "__main__":
         # read the next frame from the video stream and resize it
         
         # Read frame
-        frame = vs.read()
+        _, frame = vs.read()
         frame = imutils.resize(frame, width=400)
         # if the frame dimensions are None, grab them
         if W is None or H is None:
@@ -48,4 +47,4 @@ if __name__ == "__main__":
             break
 
         # run tracker update to get tracked tracks
-        ot.update(detections, ot.nextID)
+        ot.update(detections)
