@@ -5,4 +5,3 @@ class Track():
         self.id = id
         self.hits = hits
         self.miss = miss
-        

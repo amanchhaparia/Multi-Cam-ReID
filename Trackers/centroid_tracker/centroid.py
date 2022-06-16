@@ -1,5 +1,4 @@
 import numpy as np
-from requests import delete
 from ..track import Track
 from scipy.spatial import distance as dist
 
@@ -29,7 +28,7 @@ class Centroid_tracker():
 
         track = centroid_track(id, bbox, centroid, 1, 0)
         self.tracks.append(track)
-        self.nextID +=1
+        self.nextID += 1
         print("added id ",track.id, "succesfully")
 
     def delete_track(self):
@@ -52,28 +51,29 @@ class Centroid_tracker():
             - check if input centroids is less than last time, so some objects are lost, and icrease their miss and check if it >max_age deregister it.
                 - if not, then we new objects, so register them
         '''
-        if(detections==[] and self.tracks==[]):
-            return self.tracks
-        if(detections==[] and self.tracks!=[]):
-            print(id)
-            # increase every objects miss by 1
-            for track in self.tracks:
-                track.miss +=1
-            self.delete_track()
-            return self.tracks
 
-        inputCentroids = np.zeros((max(1, len(detections)), 2), dtype="int")
+        if(detections == []):
+            if(self.tracks == []):
+                return self.tracks
+            else:
+                # increase every objects miss by 1
+                for track in self.tracks:
+                    track.miss +=1
+                self.delete_track()
+                return self.tracks
 
-        for i in range(0,len(detections)):
-            cX = int((detections[i][2][0]+ detections[i][2][1]) / 2.0)
-            cY = int((detections[i][2][2] + detections[i][2][3]) / 2.0)
+        inputCentroids = np.zeros((len(detections), 2), dtype="int")
+
+        for i in range(len(detections)):
+            cX = int((detections[i][0]+ detections[i][1]) / 2.0)
+            cY = int((detections[i][2] + detections[i][3]) / 2.0)
             inputCentroids[i] = (cX, cY)
         
         objectId = []
         objectCentroid = []
         if len(self.tracks) == 0:
             for i in range(0, len(inputCentroids)):
-                self.add_track(self.nextID, detections,inputCentroids[i])
+                self.add_track(self.nextID, detections[i][2],inputCentroids[i])
         else:      
             for track in self.tracks:
                 objectId.append(track.id)
@@ -106,7 +106,5 @@ class Centroid_tracker():
                         return self.tracks
             else:
                 for col in unusedCols:
-                    print(detections)
-                    print(inputCentroids[col])
-                    self.add_track(self.nextID, detections[col][2], inputCentroids[col])
+                    self.add_track(self.nextID, detections[col], inputCentroids[col])
         return self.tracks
