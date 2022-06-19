@@ -16,41 +16,49 @@ class Centroid_tracker():
         self.thres_distance = 20
 
     def add_track(self, id, bbox, centroid):
-        """Create a centroid track object and adds to tracks list
         """
+        Adding newly tracked objects  to track list.
+        
+        Args
+        id : new id to be assigned 
+        bbox : bounding box of the object
+        centroid : centroid of the object
 
-        '''
-        - add centroid to track list
-        - id++
-        - add instance from class track
-        - if hits > min_hits add track
-        '''
-
+        Returns
+        None
+        """
+        
         track = centroid_track(id, bbox, centroid, 1, 0)
         self.tracks.append(track)
         self.nextID += 1
         print("added id ",track.id, "succesfully")
 
     def delete_track(self):
-        """Deletes a centroid track object from tracks list if the max age is crossed.
         """
+        Deletes a centroid track object from tracks list if the max age is crossed.
+        
+        Args
+        None
+
+        Returns 
+        None
+        """
+
         for track in self.tracks:
             if(track.miss > self.max_age):
                 print("deleted id ",track.id, "succesfully")
                 self.tracks.remove(track)
 
     def update(self, detections):
-        """Returns the active list of centroid track objects"""
-        
-        '''
-        - check if bbox is empty, if its empty, increase miss and check if miss> max_age if it is delete_track and return
-        - create centroid array, n calculate centroid of all tracks
-        - if nextid is 0, means no objects are tracking, then add_track
-        - else, find the min. distance of old centroid n new centroid
-            - check whether the centroid is matched to any row or col, if not then this means this object was lost earlier and now found, and reset it miss to 0
-            - check if input centroids is less than last time, so some objects are lost, and icrease their miss and check if it >max_age deregister it.
-                - if not, then we new objects, so register them
-        '''
+        """
+        Returns the active list of centroid track objects
+
+        Args
+        detections : list of bbox of detected objects
+
+        Returns
+        tracks : list of objects of class Track
+        """
 
         if(detections == []):
             if(self.tracks == []):
@@ -73,7 +81,7 @@ class Centroid_tracker():
         objectCentroid = []
         if len(self.tracks) == 0:
             for i in range(0, len(inputCentroids)):
-                self.add_track(self.nextID, detections[i][2],inputCentroids[i])
+                self.add_track(self.nextID, detections[i], inputCentroids[i])
         else:      
             for track in self.tracks:
                 objectId.append(track.id)
@@ -85,9 +93,10 @@ class Centroid_tracker():
             usedCols = set()
             # loop over the combination of the (row, column) index tuples
             for (row, col) in zip(rows, cols):
-                # if we have already examined either the row or column value before, ignore it val
+                # if we have already examined either the row or column value before, ignore it
                 if row in usedRows or col in usedCols:
                     continue
+                self.tracks[row].bbox = detections[col]
                 self.tracks[row].centroid = inputCentroids[col]
                 self.tracks[row].miss = 0
                 # indicate that we have examined each of the row and column indexes, respectively
@@ -100,11 +109,8 @@ class Centroid_tracker():
                 for row in unusedRows: 
                     # grab the object ID for the corresponding row index and increment the disappeared counter
                     self.tracks[row].miss += 1
-                    # check to see if the number of consecutive frames the object has been marked "disappeared" for warrants deregistering the object
-                    if self.tracks[row].miss >= self.max_age:
-                        self.delete_track()
-                        return self.tracks
             else:
                 for col in unusedCols:
                     self.add_track(self.nextID, detections[col], inputCentroids[col])
+        self.delete_track()
         return self.tracks
