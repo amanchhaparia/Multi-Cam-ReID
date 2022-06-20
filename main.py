@@ -8,8 +8,8 @@ if __name__ == "__main__":
     # load the video
     vs = cv2.VideoCapture("/home/dhruv/Downloads/Single1.mp4")
 
-    cfg_file = "Detectors/YOLO/darknet/cfg/yolov4.cfg"
-    weight_file = "Detectors/YOLO/darknet/yolov4.weights"
+    cfg_file = "Detectors/YOLO/darknet/cfg/yolov4-tiny.cfg"
+    weight_file = "Detectors/YOLO/darknet/yolov4-tiny.weights"
     namesfile = "Detectors/YOLO/darknet/data/coco.names"
     datafile = "Detectors/YOLO/darknet/cfg/coco.data"
     class_names="Detectors/YOLO/darknet/data/coco.names"
@@ -26,6 +26,7 @@ if __name__ == "__main__":
         ret, frame = vs.read()
         if ret!=True:
             break
+        frame=cv2.resize(frame,(640,480))
         # run detection and get bbox
         detections = dect.detect(frame)
         # run tracker update to get tracked tracks
