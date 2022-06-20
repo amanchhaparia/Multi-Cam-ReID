@@ -20,7 +20,8 @@ class Yolo():
         Args
         image: A ndarray bgr image.
 
-        Returns a list of detections where each item in list contains [x1, y1, x2, y2, conf]
+        Returns 
+        dect_list: A list of detections where each item in list contains [x1, y1, x2, y2, conf]
         """
 
         self.width = darknet.network_width(self.model)
@@ -38,6 +39,17 @@ class Yolo():
         return dect_list
 
     def draw_box(self, detections, image):
+        """
+        Draws bbox around the detection and display "id" of each object
+
+        Args
+        detections: 
+        image: A ndarray bgr image.
+
+        Returns
+        image: Annotated image
+        """
+
         for bbox, id in detections:
             left, top, right, bottom = self.convert4cropping(image,bbox)
             cv2.rectangle(image, (left, top), (right, bottom), [255,0,0], 1)
@@ -45,6 +57,16 @@ class Yolo():
         return image
     
     def convert4cropping(self, image, bbox):
+        """
+        Calculates correct position for bbox according to image height and width
+
+        Args
+        image: A ndarray bgr image.
+        bbox: A tuple consiting of bounding box coordinates
+
+        Returns
+        orig_left, orig_top, orig_right, orig_bottom: bbox co-ordinates
+        """
         x, y, w, h = self.convert2relative(bbox)
 
         image_h, image_w, __ = image.shape
@@ -63,7 +85,13 @@ class Yolo():
 
     def convert2relative(self, bbox):
         """
-        YOLO format use relative coordinates for annotation
+        Converts to relative coordinates for annotation of bbox on image
+
+        Args
+        bbox: A tuple consiting of bounding box coordinates
+
+        Returns
+        x/_width, y/_height, w/_width, h/_height: realtive coordinates
         """
         x, y, w, h  = bbox
         _height     = self.height
