@@ -1,8 +1,7 @@
 
 class Track():
-    def __init__ (self, id, bbox):
+    def __init__ (self, id, bbox, hits, miss):
         self.bbox = bbox
         self.id = id
-        self.hits = 0
-        self.miss = 0
-        
+        self.hits = hits
+        self.miss = miss

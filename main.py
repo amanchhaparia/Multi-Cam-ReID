@@ -1,17 +1,39 @@
 import cv2
-import numpy as np
-
 from Trackers.centroid_tracker.centroid import Centroid_tracker
-
-
+from Detectors.YOLO import yolo
 if __name__ == "__main__":
+    
     # Add the arg parser
+    
     # load the video
+    vs = cv2.VideoCapture("/home/ppspr/Videos/car.mp4")
+
+    cfg_file = "Detectors/YOLO/darknet/cfg/yolov4.cfg"
+    weight_file = "Detectors/YOLO/darknet/yolov4.weights"
+    namesfile = "Detectors/YOLO/darknet/data/coco.names"
+    datafile = "Detectors/YOLO/darknet/cfg/coco.data"
+    class_names="Detectors/YOLO/darknet/data/coco.names"
+
     # Initiate object detector
+    dect = yolo.Yolo(cfg_file, weight_file,namesfile, datafile)
+    
     # Initiate tracker object
+    ot = Centroid_tracker()
+    
     # run the while loop
-    # Read frame
-    # run detection and get bbox
-    # run tracker update to get tracked tracks
-    # display the output
-    pass
+    while True:
+        # Read frame 
+        ret, frame = vs.read()
+        if ret!=True:
+            break
+        # run detection and get bbox
+        detections = dect.detect(frame)
+        # run tracker update to get tracked tracks
+        track_list = ot.update(detections)
+        detections = []
+        for track in track_list:
+            detections.append((track.bbox, track.id))
+        res = dect.draw_box(detections, frame)
+        cv2.imshow("result",res)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
