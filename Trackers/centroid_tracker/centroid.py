@@ -97,7 +97,7 @@ class Centroid_tracker():
                     self.add_track(self.nextID, detections[col], inputCentroids[col])
         self.delete_track()
         result=[a for a in self.tracks if a.hits>=self.min_hits]
-        return self.tracks
+        return result
 
     def check_track(self,objectCentroid,inputCentroids,detections):
         D = dist.cdist(np.array(objectCentroid), inputCentroids)
@@ -113,6 +113,7 @@ class Centroid_tracker():
             self.tracks[row].bbox = detections[col]
             self.tracks[row].centroid = inputCentroids[col]
             self.tracks[row].miss = 0
+            self.tracks[row].hits += 1
             # indicate that we have examined each of the row and column indexes, respectively
             usedRows.add(row)
             usedCols.add(col)

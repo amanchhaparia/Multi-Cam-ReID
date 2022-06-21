@@ -7,7 +7,7 @@ if __name__ == "__main__":
     # Add the arg parser
     
     # load the video
-    vs = cv2.VideoCapture("/home/dhruv/Downloads/Single1.mp4")
+    vs = cv2.VideoCapture(0)
 
     cfg_file = "Detectors/YOLO/darknet/cfg/yolov4-tiny.cfg"
     weight_file = "Detectors/YOLO/darknet/yolov4-tiny.weights"
