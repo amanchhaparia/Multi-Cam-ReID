@@ -1,6 +1,7 @@
 import cv2
 from Trackers.centroid_tracker.centroid import Centroid_tracker
 from Detectors.YOLO import yolo
+from Trackers.utility.utility import draw_box
 if __name__ == "__main__":
     
     # Add the arg parser
@@ -13,10 +14,10 @@ if __name__ == "__main__":
     namesfile = "Detectors/YOLO/darknet/data/coco.names"
     datafile = "Detectors/YOLO/darknet/cfg/coco.data"
     class_names="Detectors/YOLO/darknet/data/coco.names"
-
     # Initiate object detector
     dect = yolo.Yolo(cfg_file, weight_file,namesfile, datafile)
     
+    model = dect.load_model()
     # Initiate tracker object
     ot = Centroid_tracker()
     
@@ -34,7 +35,7 @@ if __name__ == "__main__":
         detections = []
         for track in track_list:
             detections.append((track.bbox, track.id))
-        res = dect.draw_box(detections, frame)
+        res =draw_box(detections, frame,model)
         cv2.imshow("result",res)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
