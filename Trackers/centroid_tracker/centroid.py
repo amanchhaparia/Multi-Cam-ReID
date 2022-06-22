@@ -100,6 +100,19 @@ class Centroid_tracker():
         return result
 
     def check_track(self,objectCentroid,inputCentroids,detections):
+        """
+        Returns cost matrix and list of matched and unmatched tracks. 
+        
+        Args
+        objectCentroid : list of centroids of existing objects.
+        inputCentroids : list of centroids of current detections.
+        detections : list of detections in current frame
+
+        Returns
+        D : cost matrix
+        unusedrows : index of unmatched tracks
+        unusedcols : index of newly detected tracks 
+        """
         D = dist.cdist(np.array(objectCentroid), inputCentroids)
         rows = D.min(axis=1).argsort()
         cols = D.argmin(axis=1)[rows]
