@@ -17,7 +17,7 @@ class Centroid_tracker():
 
     def add_track(self, id, bbox, centroid):
         """
-        Adding newly tracked objects  to track list.
+        Adding newly tracked objects to "tracks".
         
         Args
         id : new id to be assigned 
@@ -35,7 +35,7 @@ class Centroid_tracker():
 
     def delete_track(self):
         """
-        Deletes a centroid track object from tracks list if the max age is crossed.
+        Deletes a centroid track object from "tracks" if the object is disappeared for more than "max_age".
         
         Args
         None
@@ -51,7 +51,7 @@ class Centroid_tracker():
 
     def update(self, detections):
         """
-        Returns the active list of centroid track objects
+        Returns the active list of centroid track objects.
 
         Args
         detections : list of bbox of detected objects
@@ -98,7 +98,7 @@ class Centroid_tracker():
         self.delete_track()
         result=[a for a in self.tracks if a.hits>=self.min_hits]
         return result
-
+        
     def check_track(self,objectCentroid,inputCentroids,detections):
         """
         Returns cost matrix and list of matched and unmatched tracks. 
@@ -107,7 +107,6 @@ class Centroid_tracker():
         objectCentroid : list of centroids of existing objects.
         inputCentroids : list of centroids of current detections.
         detections : list of detections in current frame
-
         Returns
         D : cost matrix
         unusedrows : index of unmatched tracks

@@ -13,7 +13,7 @@ class Yolo():
         """
         self.model, self.class_names, self.colors = darknet.load_network(self.cfg_file, self.datafile, self.weight_file)
         return self.model
-        
+
     def detect(self, image):
         """
         Detects the person in the image.
@@ -21,7 +21,8 @@ class Yolo():
         Args
         image: A ndarray bgr image.
 
-        Returns a list of detections where each item in list contains [x1, y1, x2, y2, conf]
+        Returns 
+        dect_list: A list of detections where each item in list contains [x1, y1, x2, y2, conf]
         """
 
         self.width = darknet.network_width(self.model)
