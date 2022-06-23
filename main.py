@@ -6,10 +6,10 @@ if __name__ == "__main__":
     # Add the arg parser
     
     # load the video
-    vs = cv2.VideoCapture("/home/ppspr/Videos/car.mp4")
+    vs = cv2.VideoCapture("/home/dhruv/Downloads/campus4-c0.avi")
 
-    cfg_file = "Detectors/YOLO/darknet/cfg/yolov4.cfg"
-    weight_file = "Detectors/YOLO/darknet/yolov4.weights"
+    cfg_file = "Detectors/YOLO/darknet/cfg/yolov4-tiny.cfg"
+    weight_file = "Detectors/YOLO/darknet/yolov4-tiny.weights"
     namesfile = "Detectors/YOLO/darknet/data/coco.names"
     datafile = "Detectors/YOLO/darknet/cfg/coco.data"
     class_names="Detectors/YOLO/darknet/data/coco.names"

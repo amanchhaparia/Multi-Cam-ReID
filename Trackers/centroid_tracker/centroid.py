@@ -87,23 +87,12 @@ class Centroid_tracker():
                 objectId.append(track.id)
                 objectCentroid.append(track.centroid) 
             D = dist.cdist(np.array(objectCentroid), inputCentroids)
-            rows = D.min(axis=1).argsort()
-            cols = D.argmin(axis=1)[rows]
-            usedRows = set()
-            usedCols = set()
-            # loop over the combination of the (row, column) index tuples
-            for (row, col) in zip(rows, cols):
-                # if we have already examined either the row or column value before, ignore it
-                if row in usedRows or col in usedCols:
-                    continue
-                self.tracks[row].bbox = detections[col]
-                self.tracks[row].centroid = inputCentroids[col]
-                self.tracks[row].miss = 0
-                # indicate that we have examined each of the row and column indexes, respectively
-                usedRows.add(row)
-                usedCols.add(col)
-            unusedRows = set(range(0, D.shape[0])).difference(usedRows)
-            unusedCols = set(range(0, D.shape[1])).difference(usedCols)
+            unusedRows,unusedCols,matched= self.find_match(objectCentroid,inputCentroids)
+            for i in matched:
+                self.tracks[i[0]].bbox = detections[i[1]]
+                self.tracks[i[0]].centroid = inputCentroids[i[1]]
+                self.tracks[i[0]].miss = 0
+                self.tracks[i[0]].hits += 1
             if D.shape[0] >= D.shape[1]:
             # loop over the unused row indexes
                 for row in unusedRows: 
@@ -113,4 +102,35 @@ class Centroid_tracker():
                 for col in unusedCols:
                     self.add_track(self.nextID, detections[col], inputCentroids[col])
         self.delete_track()
-        return self.tracks
+        result=[a for a in self.tracks if a.hits>=self.min_hits]
+        return result
+
+    def find_match(self,objectCentroid,inputCentroids):
+        """
+        Returns list of matched objects , unmatched tracks and unmatched detections.  
+        
+        Args
+        objectCentroid : list of centroids of existing objects.
+        inputCentroids : list of centroids of current detections.
+
+        Returns
+        unusedcols : index of newly detected tracks
+        matched : list of index of matching objects 
+        """
+        D = dist.cdist(np.array(objectCentroid), inputCentroids)
+        rows = D.min(axis=1).argsort()
+        cols = D.argmin(axis=1)[rows]
+        usedRows = set()
+        usedCols = set()
+        matched =[]
+        # loop over the combination of the (row, column) index tuples
+        for (row, col) in zip(rows, cols):
+            # if we have already examined either the row or column value before, ignore it
+            if row in usedRows or col in usedCols:
+                continue
+            usedRows.add(row)
+            usedCols.add(col)
+            matched.append((row,col))
+        unusedRows = set(range(0, D.shape[0])).difference(usedRows)
+        unusedCols = set(range(0, D.shape[1])).difference(usedCols)
+        return unusedRows,unusedCols,matched
