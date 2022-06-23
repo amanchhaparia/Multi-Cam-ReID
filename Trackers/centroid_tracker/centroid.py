@@ -86,21 +86,18 @@ class Centroid_tracker():
             for track in self.tracks:
                 objectId.append(track.id)
                 objectCentroid.append(track.centroid) 
-            D = dist.cdist(np.array(objectCentroid), inputCentroids)
-            unusedRows,unusedCols,matched= self.find_match(objectCentroid,inputCentroids)
-            for i in matched:
-                self.tracks[i[0]].bbox = detections[i[1]]
-                self.tracks[i[0]].centroid = inputCentroids[i[1]]
-                self.tracks[i[0]].miss = 0
-                self.tracks[i[0]].hits += 1
-            if D.shape[0] >= D.shape[1]:
+            unusedRows, unusedCols, matched = self.find_match(objectCentroid, inputCentroids)
+            for trk, det in matched:
+                self.tracks[trk].bbox = detections[det]
+                self.tracks[trk].centroid = inputCentroids[det]
+                self.tracks[trk].miss = 0
+                self.tracks[trk].hits += 1
             # loop over the unused row indexes
-                for row in unusedRows: 
-                    # grab the object ID for the corresponding row index and increment the disappeared counter
-                    self.tracks[row].miss += 1
-            else:
-                for col in unusedCols:
-                    self.add_track(self.nextID, detections[col], inputCentroids[col])
+            for row in unusedRows: 
+                # grab the object ID for the corresponding row index and increment the disappeared counter
+                self.tracks[row].miss += 1
+            for col in unusedCols:
+                self.add_track(self.nextID, detections[col], inputCentroids[col])
         self.delete_track()
         result=[a for a in self.tracks if a.hits>=self.min_hits]
         return result
@@ -120,17 +117,17 @@ class Centroid_tracker():
         D = dist.cdist(np.array(objectCentroid), inputCentroids)
         rows = D.min(axis=1).argsort()
         cols = D.argmin(axis=1)[rows]
-        usedRows = set()
-        usedCols = set()
+        matched_tracks = set()
+        matched_det = set()
         matched =[]
         # loop over the combination of the (row, column) index tuples
         for (row, col) in zip(rows, cols):
             # if we have already examined either the row or column value before, ignore it
-            if row in usedRows or col in usedCols:
+            if row in matched_tracks or col in matched_det:
                 continue
-            usedRows.add(row)
-            usedCols.add(col)
+            matched_tracks.add(row)
+            matched_det.add(col)
             matched.append((row,col))
-        unusedRows = set(range(0, D.shape[0])).difference(usedRows)
-        unusedCols = set(range(0, D.shape[1])).difference(usedCols)
-        return unusedRows,unusedCols,matched
+        unmatched_tracks = set(range(0, D.shape[0])).difference(matched_tracks)
+        unmacthed_det = set(range(0, D.shape[1])).difference(matched_det)
+        return unmatched_tracks, unmacthed_det, matched
