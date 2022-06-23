@@ -21,7 +21,7 @@ if __name__ == "__main__":
     # Initiate tracker object
     # ot = Centroid_tracker()
     ot = iou_tracker()
-    
+
     # run the while loop
     while True:
         # Read frame 
