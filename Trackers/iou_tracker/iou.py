@@ -10,8 +10,8 @@ class iou_tracker():
     def __init__(self):
         self.tracks = []
         self.nextId = 0
-        self.max_age=10
-        self.min_hits=3
+        self.max_age = 10
+        self.min_hits = 3
 
     def add_track(self, id, bbox):
         """
@@ -156,6 +156,32 @@ class iou_tracker():
         print("matches",matches)
         return matches, unmatched_detections, unmatched_trackers       
         
+    def get_iou_matrix(self, box_arr1, box_arr2):
+        """ 
+        Given two arrays box1 , box2 where each row contains a bounding
+        box defined as a list of four numbers: [x1,y1,x2,y2]
+        It returns the Intersect of Union scores for each corresponding
+        pair of boxes.
+
+        Args
+        box_arr1 : (numpy array) each row containing [x1,y1,x2,y2] coordinates
+        box_arr2 : (numpy array) each row containing [x1,y1,x2,y2] coordinates
+    
+        Returns:
+        (numpy array) The Intersect of Union scores for each pair of bounding boxes.
+        """
+        x11, y11, x12, y12 = np.split(box_arr1, 4, axis=1)
+        x21, y21, x22, y22 = np.split(box_arr2, 4, axis=1)
+        xA = np.maximum(x11, np.transpose(x21))
+        yA = np.maximum(y11, np.transpose(y21))
+        xB = np.minimum(x12, np.transpose(x22))
+        yB = np.minimum(y12, np.transpose(y22))
+        interArea = np.maximum((xB - xA + 1e-9), 0) * np.maximum((yB - yA + 1e-9), 0)
+        boxAArea = (x12 - x11 + 1e-9) * (y12 - y11 + 1e-9)
+        boxBArea = (x22 - x21 + 1e-9) * (y22 - y21 + 1e-9)
+        iou = interArea / (boxAArea + np.transpose(boxBArea) - interArea)
+        return iou
+
     def convert2relative(self,bbox):
         """
         Helper function to calculate left,top,right,bottom co-ordinates.
@@ -182,29 +208,4 @@ class iou_tracker():
         if (orig_bottom > image_h - 1): orig_bottom = image_h - 1
 
         return tuple((orig_left, orig_top, orig_right, orig_bottom))
-
-    def get_iou_matrix(self, box_arr1, box_arr2):
-        """ 
-        Given two arrays box1 , box2 where each row contains a bounding
-        box defined as a list of four numbers: [x1,y1,x2,y2]
-        It returns the Intersect of Union scores for each corresponding
-        pair of boxes.
-
-        Args
-        box_arr1 : (numpy array) each row containing [x1,y1,x2,y2] coordinates
-        box_arr2 : (numpy array) each row containing [x1,y1,x2,y2] coordinates
-    
-        Returns:
-        (numpy array) The Intersect of Union scores for each pair of bounding boxes.
-        """
-        x11, y11, x12, y12 = np.split(box_arr1, 4, axis=1)
-        x21, y21, x22, y22 = np.split(box_arr2, 4, axis=1)
-        xA = np.maximum(x11, np.transpose(x21))
-        yA = np.maximum(y11, np.transpose(y21))
-        xB = np.minimum(x12, np.transpose(x22))
-        yB = np.minimum(y12, np.transpose(y22))
-        interArea = np.maximum((xB - xA + 1e-9), 0) * np.maximum((yB - yA + 1e-9), 0)
-        boxAArea = (x12 - x11 + 1e-9) * (y12 - y11 + 1e-9)
-        boxBArea = (x22 - x21 + 1e-9) * (y22 - y21 + 1e-9)
-        iou = interArea / (boxAArea + np.transpose(boxBArea) - interArea)
-        return iou
+        
