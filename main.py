@@ -1,5 +1,6 @@
 import cv2
 from Trackers.centroid_tracker.centroid import Centroid_tracker
+from Trackers.iou_tracker.iou import iou_tracker
 from Detectors.YOLO import yolo
 if __name__ == "__main__":
     
@@ -18,14 +19,16 @@ if __name__ == "__main__":
     dect = yolo.Yolo(cfg_file, weight_file,namesfile, datafile)
     
     # Initiate tracker object
-    ot = Centroid_tracker()
-    
+    # ot = Centroid_tracker()
+    ot = iou_tracker()
+
     # run the while loop
     while True:
         # Read frame 
         ret, frame = vs.read()
         if ret!=True:
             break
+        frame=cv2.resize(frame,(640,480))
         # run detection and get bbox
         detections = dect.detect(frame)
         # run tracker update to get tracked tracks
