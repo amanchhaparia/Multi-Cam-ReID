@@ -86,31 +86,48 @@ class Centroid_tracker():
             for track in self.tracks:
                 objectId.append(track.id)
                 objectCentroid.append(track.centroid) 
-            D = dist.cdist(np.array(objectCentroid), inputCentroids)
-            rows = D.min(axis=1).argsort()
-            cols = D.argmin(axis=1)[rows]
-            usedRows = set()
-            usedCols = set()
-            # loop over the combination of the (row, column) index tuples
-            for (row, col) in zip(rows, cols):
-                # if we have already examined either the row or column value before, ignore it
-                if row in usedRows or col in usedCols:
-                    continue
-                self.tracks[row].bbox = detections[col]
-                self.tracks[row].centroid = inputCentroids[col]
-                self.tracks[row].miss = 0
-                # indicate that we have examined each of the row and column indexes, respectively
-                usedRows.add(row)
-                usedCols.add(col)
-            unusedRows = set(range(0, D.shape[0])).difference(usedRows)
-            unusedCols = set(range(0, D.shape[1])).difference(usedCols)
-            if D.shape[0] >= D.shape[1]:
+            matches, unmatched_tracks, unmatched_detections  = self.assign_detections_to_trackers(objectCentroid, inputCentroids)
+            for trk, det in matches:
+                self.tracks[trk].bbox = detections[det]
+                self.tracks[trk].centroid = inputCentroids[det]
+                self.tracks[trk].miss = 0
+                self.tracks[trk].hits += 1
             # loop over the unused row indexes
-                for row in unusedRows: 
-                    # grab the object ID for the corresponding row index and increment the disappeared counter
-                    self.tracks[row].miss += 1
-            else:
-                for col in unusedCols:
-                    self.add_track(self.nextID, detections[col], inputCentroids[col])
+            for row in unmatched_tracks: 
+                # grab the object ID for the corresponding row index and increment the disappeared counter
+                self.tracks[row].miss += 1
+            for col in unmatched_detections:
+                self.add_track(self.nextID, detections[col], inputCentroids[col])
         self.delete_track()
-        return self.tracks
+        result=[trk for trk in self.tracks if trk.hits>=self.min_hits]
+        return result
+
+    def assign_detections_to_trackers(self,objectCentroid,inputCentroids):
+        """
+        Returns list of matched objects , unmatched tracks and unmatched detections.  
+        
+        Args
+        objectCentroid : list of centroids of existing objects.
+        inputCentroids : list of centroids of current detections.
+
+        Returns
+        unusedcols : index of newly detected tracks
+        matched : list of index of matching objects 
+        """
+        D = dist.cdist(np.array(objectCentroid), inputCentroids)
+        rows = D.min(axis=1).argsort()
+        cols = D.argmin(axis=1)[rows]
+        matched_tracks = set()
+        matched_det = set()
+        matches =[]
+        # loop over the combination of the (row, column) index tuples
+        for (row, col) in zip(rows, cols):
+            # if we have already examined either the row or column value before, ignore it
+            if row in matched_tracks or col in matched_det:
+                continue
+            matched_tracks.add(row)
+            matched_det.add(col)
+            matches.append((row,col))
+        unmatched_tracks = set(range(0, D.shape[0])).difference(matched_tracks)
+        unmatched_det = set(range(0, D.shape[1])).difference(matched_det)
+        return matches, unmatched_tracks, unmatched_det
