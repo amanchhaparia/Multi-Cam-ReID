@@ -97,3 +97,4 @@ class Yolo():
         _height     = self.height
         _width      = self.width
         return x/_width, y/_height, w/_width, h/_height
+    
