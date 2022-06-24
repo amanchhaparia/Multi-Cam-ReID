@@ -10,7 +10,7 @@ class iou_tracker():
     def __init__(self):
         self.tracks = []
         self.nextId = 0
-        self.max_lost=10
+        self.max_age=10
         self.min_hits=3
 
     def add_track(self, id, bbox):
@@ -43,7 +43,7 @@ class iou_tracker():
         """
 
         for track in self.tracks:
-            if(track.miss > self.max_lost):
+            if(track.miss > self.max_age):
                 print("deleted id ",track.id, "succesfully")
                 self.tracks.remove(track)
     
@@ -70,10 +70,10 @@ class iou_tracker():
 
         matched, unmatched_dets, unmatched_trks = self.assign_detections_to_trackers(detections, iou_thrd = 0.3)  
     
-        for i in matched:
-            self.tracks[i[0]].bbox= detections[i[1]]
-            self.tracks[i[0]].hits += 1
-            self.tracks[i[0]].miss = 0
+        for trk, det in matched:
+            self.tracks[trk].bbox= detections[det]
+            self.tracks[trk].hits += 1
+            self.tracks[trk].miss = 0
         print(len(unmatched_dets),"unmatchdet")
         # Deal with unmatched detections      
         if len(unmatched_dets)>0:
@@ -86,7 +86,7 @@ class iou_tracker():
             for trk_idx in unmatched_trks:
                 self.tracks[trk_idx].miss += 1
             self.delete_track()
-        result=[a for a in self.tracks if a.hits>=self.min_hits]
+        result=[trk for trk in self.tracks if trk.hits>=self.min_hits]
         return result
 
     def assign_detections_to_trackers(self , detections, iou_thrd = 0.3):
@@ -105,19 +105,25 @@ class iou_tracker():
         unmatched detections : list of index values of unmatched detections.
 
         """
-        
-        IOU_mat= np.zeros((len(self.tracks),len(detections)),dtype=np.float32)
-        for t,trk in enumerate(self.tracks):
-            #trk = convert_to_cv2bbox(trk) 
-            for d,det in enumerate(detections):
-            #   det = convert_to_cv2bbox(det)
-                IOU_mat[t,d] =self.box_iou2(trk.bbox,det) 
-        
-        print(IOU_mat)
-        # Produces matches       
+        tracks = []
+        detect = []
+        if len(self.tracks)==0:
+            tracks=np.zeros((1,4))
+        else:
+            for trk in self.tracks:
+                tracks.append(list(self.convert2relative(trk.bbox)))
+            tracks=np.array(tracks,dtype=np.float32)
+        for det in detections:
+            detect.append(list(self.convert2relative(det)))
+        detect=np.array(detect,dtype=np.float32)
+        IOU_mat = self.get_iou_matrix(tracks, detect)
+        if(len(self.tracks)*len(detections) == 1 or len(self.tracks)*len(detections) == 0):
+            IOU_mat = np.reshape(IOU_mat,(1,1))
+        else: 
+            IOU_mat = np.reshape(IOU_mat,(len(self.tracks),len(detections)))
+
         # Solve the maximizing the sum of IOU assignment problem using the
         # Hungarian algorithm (also known as Munkres algorithm)
-        
         row , col = linear_assignment(-IOU_mat)  
         print("row",row,"col",col)  
         unmatched_trackers, unmatched_detections = [], []
@@ -150,29 +156,6 @@ class iou_tracker():
         print("matches",matches)
         return matches, unmatched_detections, unmatched_trackers       
         
-    def box_iou2(self ,a, b):
-        """
-        Helper function to calculate the ratio between intersection and the union of
-        two boxes a and b
-
-        Args
-        a : bbox values of existing tracks
-        b : bbox values of detections
-
-        Returns
-        iou : intersection over union value between bbox of tracks and detections.
-        """
-
-        a = self.convert2relative(a)
-        b = self.convert2relative(b)
-        w_intsec = np.maximum (0, (np.minimum(a[2], b[2]) - np.maximum(a[0], b[0])))
-        h_intsec = np.maximum (0, (np.minimum(a[3], b[3]) - np.maximum(a[1], b[1])))
-        s_intsec = w_intsec * h_intsec
-        s_a = (a[2] - a[0])*(a[3] - a[1])
-        s_b = (b[2] - b[0])*(b[3] - b[1])
-        iou=float(s_intsec)/(s_a + s_b -s_intsec)
-        return iou
-
     def convert2relative(self,bbox):
         """
         Helper function to calculate left,top,right,bottom co-ordinates.
@@ -200,4 +183,28 @@ class iou_tracker():
 
         return tuple((orig_left, orig_top, orig_right, orig_bottom))
 
+    def get_iou_matrix(self, box_arr1, box_arr2):
+        """ 
+        Given two arrays box1 , box2 where each row contains a bounding
+        box defined as a list of four numbers: [x1,y1,x2,y2]
+        It returns the Intersect of Union scores for each corresponding
+        pair of boxes.
+
+        Args
+        box_arr1 : (numpy array) each row containing [x1,y1,x2,y2] coordinates
+        box_arr2 : (numpy array) each row containing [x1,y1,x2,y2] coordinates
     
+        Returns:
+        (numpy array) The Intersect of Union scores for each pair of bounding boxes.
+        """
+        x11, y11, x12, y12 = np.split(box_arr1, 4, axis=1)
+        x21, y21, x22, y22 = np.split(box_arr2, 4, axis=1)
+        xA = np.maximum(x11, np.transpose(x21))
+        yA = np.maximum(y11, np.transpose(y21))
+        xB = np.minimum(x12, np.transpose(x22))
+        yB = np.minimum(y12, np.transpose(y22))
+        interArea = np.maximum((xB - xA + 1e-9), 0) * np.maximum((yB - yA + 1e-9), 0)
+        boxAArea = (x12 - x11 + 1e-9) * (y12 - y11 + 1e-9)
+        boxBArea = (x22 - x21 + 1e-9) * (y22 - y21 + 1e-9)
+        iou = interArea / (boxAArea + np.transpose(boxBArea) - interArea)
+        return iou
