@@ -1,4 +1,3 @@
-from pwd import getpwuid
 import cv2
 from .darknet import darknet
 
