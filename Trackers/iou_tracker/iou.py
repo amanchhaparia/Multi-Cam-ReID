@@ -213,4 +213,3 @@ class iou_tracker():
         if (orig_bottom > image_h - 1): orig_bottom = image_h - 1
 
         return tuple((orig_left, orig_top, orig_right, orig_bottom))
-        
