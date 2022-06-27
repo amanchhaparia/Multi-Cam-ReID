@@ -9,7 +9,7 @@ class iou_track(Track):
 class iou_tracker():
     def __init__(self):
         self.tracks = []
-        self.nextId = 0
+        self.nextID = 0
         self.max_age = 10
         self.min_hits = 3
 
@@ -28,7 +28,7 @@ class iou_tracker():
         
         track = iou_track(id, bbox , 1, 0)
         self.tracks.append(track)
-        self.nextId += 1
+        self.nextID += 1
         print("added id ",track.id, "succesfully")
 
     def delete_track(self):
@@ -67,8 +67,14 @@ class iou_tracker():
                     track.miss +=1
                 self.delete_track()
                 return self.tracks
-
-        matched, unmatched_dets, unmatched_trks = self.assign_detections_to_trackers(detections, iou_thrd = 0.3)  
+        if len(self.tracks) == 0:
+            for i in range(0, len(detections)):
+                self.add_track(self.nextID, detections[i])
+            return self.tracks
+        tracks = []
+        for trk in self.tracks:
+            tracks.append(trk.bbox)
+        matched, unmatched_dets, unmatched_trks = self.assign_detections_to_trackers(tracks, detections, iou_thrd = 0.3)  
     
         for trk, det in matched:
             self.tracks[trk].bbox= detections[det]
@@ -78,7 +84,7 @@ class iou_tracker():
         # Deal with unmatched detections      
         if len(unmatched_dets)>0:
             for idx in unmatched_dets:
-                self.add_track(self.nextId , detections[idx])
+                self.add_track(self.nextID , detections[idx])
         
         # Deal with unmatched tracks       
         if len(unmatched_trks)>0:
@@ -89,15 +95,16 @@ class iou_tracker():
         result=[trk for trk in self.tracks if trk.hits>=self.min_hits]
         return result
 
-    def assign_detections_to_trackers(self , detections, iou_thrd = 0.3):
+    def assign_detections_to_trackers(self, tracks, detections, iou_thrd = 0.3):
 
         """
         From current list of trackers and new detections, output matched detections,
         unmatchted trackers, unmatched detections.
 
         Args
-        detections : list of bbox of detected objects
-        iou_thrd : threshold iou value
+        tracks : list of bbox of tracks.
+        detections : list of bbox of detected objects.
+        iou_thrd : threshold iou value.
 
         Returns
         matched detections : list of index values of matching objects.
@@ -105,37 +112,34 @@ class iou_tracker():
         unmatched detections : list of index values of unmatched detections.
 
         """
-        tracks = []
+        tracks_list = []
         detect = []
-        if len(self.tracks)==0:
-            tracks=np.zeros((1,4))
+        if len(tracks)==0:
+            tracks_list=np.zeros((1,4))
         else:
-            for trk in self.tracks:
-                tracks.append(list(self.convert2relative(trk.bbox)))
-            tracks=np.array(tracks,dtype=np.float32)
+            for trk in tracks:
+                tracks_list.append(list(self.convert2relative(trk)))
+            tracks_list=np.array(tracks_list,dtype=np.float32)
         for det in detections:
             detect.append(list(self.convert2relative(det)))
         detect=np.array(detect,dtype=np.float32)
-        IOU_mat = self.get_iou_matrix(tracks, detect)
-        if(len(self.tracks)*len(detections) == 1 or len(self.tracks)*len(detections) == 0):
+        IOU_mat = self.get_iou_matrix(tracks_list, detect)
+        if(len(tracks_list)*len(detections) == 1 or len(tracks_list)*len(detections) == 0):
             IOU_mat = np.reshape(IOU_mat,(1,1))
         else: 
-            IOU_mat = np.reshape(IOU_mat,(len(self.tracks),len(detections)))
+            IOU_mat = np.reshape(IOU_mat,(len(tracks_list),len(detections)))
 
         # Solve the maximizing the sum of IOU assignment problem using the
         # Hungarian algorithm (also known as Munkres algorithm)
         row , col = linear_assignment(-IOU_mat)  
-        print("row",row,"col",col)  
         unmatched_trackers, unmatched_detections = [], []
-        for t, track in enumerate(self.tracks):
+        for t, track in enumerate(tracks_list):
             if(t not in row):
                 unmatched_trackers.append(t)
-                print("t")
 
         for d, det in enumerate(detections):
             if(d not in col):
                 unmatched_detections.append(d)
-                print("d")
 
         matches = []
     
