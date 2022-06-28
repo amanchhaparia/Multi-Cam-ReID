@@ -1,7 +1,6 @@
 import numpy as np
 from ..track import Track
 from scipy.optimize import linear_sum_assignment as linear_assignment
-from Detectors.YOLO import yolo
 
 class iou_track(Track):
     def __init__(self, id, bbox, hits, miss):
@@ -119,10 +118,10 @@ class iou_tracker():
             tracks_list=np.zeros((1,4))
         else:
             for trk in tracks:
-                tracks_list.append(list(yolo.convert2relative(trk)))
+                tracks_list.append(list(trk))
             tracks_list=np.array(tracks_list,dtype=np.float32)
         for det in detections:
-            detect.append(list(yolo.convert2relative(bbox= det)))
+            detect.append(list(det))
         detect=np.array(detect,dtype=np.float32)
         IOU_mat = self.get_iou_matrix(tracks_list, detect)
         if(len(tracks_list)*len(detections) == 1 or len(tracks_list)*len(detections) == 0):
@@ -186,30 +185,3 @@ class iou_tracker():
         boxBArea = (x22 - x21 + 1e-9) * (y22 - y21 + 1e-9)
         iou = interArea / (boxAArea + np.transpose(boxBArea) - interArea)
         return iou
-
-    def convert2relative(self,bbox):
-        """
-        Helper function to calculate left,top,right,bottom co-ordinates.
-
-        Args
-        bbox : bounding box containing tuple of co-ordinates.
-
-        Returns
-        left,top,right,bottom co-ordinates.
-        """
-        x, y, w, h  = bbox
-        _height = 416
-        _width = 416
-        x, y, w, h = x/_width,y/_height ,w/_width,h/_height
-        image_h, image_w = 640,480
-        orig_left    = int((x - w / 2.) * image_w)
-        orig_right   = int((x + w / 2.) * image_w)
-        orig_top     = int((y - h / 2.) * image_h)
-        orig_bottom  = int((y + h / 2.) * image_h)
-
-        if (orig_left < 0): orig_left = 0
-        if (orig_right > image_w - 1): orig_right = image_w - 1
-        if (orig_top < 0): orig_top = 0
-        if (orig_bottom > image_h - 1): orig_bottom = image_h - 1
-
-        return tuple((orig_left, orig_top, orig_right, orig_bottom))
