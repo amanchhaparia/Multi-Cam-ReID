@@ -1,6 +1,7 @@
 import numpy as np
 from ..track import Track
 from scipy.optimize import linear_sum_assignment as linear_assignment
+from Detectors.YOLO import yolo
 
 class iou_track(Track):
     def __init__(self, id, bbox, hits, miss):
@@ -118,10 +119,10 @@ class iou_tracker():
             tracks_list=np.zeros((1,4))
         else:
             for trk in tracks:
-                tracks_list.append(list(self.convert2relative(trk)))
+                tracks_list.append(list(yolo.convert2relative(trk)))
             tracks_list=np.array(tracks_list,dtype=np.float32)
         for det in detections:
-            detect.append(list(self.convert2relative(det)))
+            detect.append(list(yolo.convert2relative(bbox= det)))
         detect=np.array(detect,dtype=np.float32)
         IOU_mat = self.get_iou_matrix(tracks_list, detect)
         if(len(tracks_list)*len(detections) == 1 or len(tracks_list)*len(detections) == 0):
