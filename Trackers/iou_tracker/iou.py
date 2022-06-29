@@ -55,7 +55,7 @@ class iou_tracker():
         detections : list of bbox of detected objects
 
         Returns
-        tracks : list of objects of class Track
+        result : list of objects of class Track
         """
 
         if(detections == []):
@@ -80,7 +80,7 @@ class iou_tracker():
             self.tracks[trk].bbox= detections[det]
             self.tracks[trk].hits += 1
             self.tracks[trk].miss = 0
-        print(len(unmatched_dets),"unmatchdet")
+        
         # Deal with unmatched detections      
         if len(unmatched_dets)>0:
             for idx in unmatched_dets:
@@ -88,7 +88,6 @@ class iou_tracker():
         
         # Deal with unmatched tracks       
         if len(unmatched_trks)>0:
-            print("unmat_trck",unmatched_trks)
             for trk_idx in unmatched_trks:
                 self.tracks[trk_idx].miss += 1
             self.delete_track()
@@ -107,9 +106,9 @@ class iou_tracker():
         iou_thrd : threshold iou value.
 
         Returns
-        matched detections : list of index values of matching objects.
-        unmatched trackers : list of index values of unmatched trackers.
-        unmatched detections : list of index values of unmatched detections.
+        matches : list of index values of matching objects.
+        unmatched_detections : list of index values of unmatched detections.
+        unmatched_trackers : list of index values of unmatched trackers.
 
         """
         tracks_list = []
@@ -157,7 +156,6 @@ class iou_tracker():
         
         if(len(matches)==0):
             matches = np.empty((0,2),dtype=int)
-        print("matches",matches)
         return matches, unmatched_detections, unmatched_trackers       
         
     def get_iou_matrix(self, box_arr1, box_arr2):
@@ -171,8 +169,8 @@ class iou_tracker():
         box_arr1 : (numpy array) each row containing [x1,y1,x2,y2] coordinates
         box_arr2 : (numpy array) each row containing [x1,y1,x2,y2] coordinates
     
-        Returns:
-        (numpy array) The Intersect of Union scores for each pair of bounding boxes.
+        Returns
+        iou : (numpy array) The Intersect of Union scores for each pair of bounding boxes.
         """
         x11, y11, x12, y12 = np.split(box_arr1, 4, axis=1)
         x21, y21, x22, y22 = np.split(box_arr2, 4, axis=1)

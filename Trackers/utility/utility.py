@@ -5,11 +5,11 @@ def draw_box(detections, image):
     Draws bbox around the detection and display "id" of each object
 
     Args
-    detections: 
-    image: A ndarray bgr image.
+    detections : list of bbox of detected objects
+    image : A ndarray bgr image.
 
     Returns
-    image: Annotated image
+    image : Annotated image
     """
     
     for bbox, id in detections:
