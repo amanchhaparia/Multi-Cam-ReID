@@ -55,7 +55,7 @@ class iou_tracker():
         detections : list of bbox of detected objects
 
         Returns
-        tracks : list of objects of class Track
+        result : list of objects of class Track
         """
 
         if(detections == []):
@@ -80,7 +80,7 @@ class iou_tracker():
             self.tracks[trk].bbox= detections[det]
             self.tracks[trk].hits += 1
             self.tracks[trk].miss = 0
-        print(len(unmatched_dets),"unmatchdet")
+        
         # Deal with unmatched detections      
         if len(unmatched_dets)>0:
             for idx in unmatched_dets:
@@ -88,7 +88,6 @@ class iou_tracker():
         
         # Deal with unmatched tracks       
         if len(unmatched_trks)>0:
-            print("unmat_trck",unmatched_trks)
             for trk_idx in unmatched_trks:
                 self.tracks[trk_idx].miss += 1
             self.delete_track()
@@ -107,9 +106,9 @@ class iou_tracker():
         iou_thrd : threshold iou value.
 
         Returns
-        matched detections : list of index values of matching objects.
-        unmatched trackers : list of index values of unmatched trackers.
-        unmatched detections : list of index values of unmatched detections.
+        matches : list of index values of matching objects.
+        unmatched_detections : list of index values of unmatched detections.
+        unmatched_trackers : list of index values of unmatched trackers.
 
         """
         tracks_list = []
@@ -118,10 +117,10 @@ class iou_tracker():
             tracks_list=np.zeros((1,4))
         else:
             for trk in tracks:
-                tracks_list.append(list(self.convert2relative(trk)))
+                tracks_list.append(list(trk))
             tracks_list=np.array(tracks_list,dtype=np.float32)
         for det in detections:
-            detect.append(list(self.convert2relative(det)))
+            detect.append(list(det))
         detect=np.array(detect,dtype=np.float32)
         IOU_mat = self.get_iou_matrix(tracks_list, detect)
         if(len(tracks_list)*len(detections) == 1 or len(tracks_list)*len(detections) == 0):
@@ -157,7 +156,6 @@ class iou_tracker():
         
         if(len(matches)==0):
             matches = np.empty((0,2),dtype=int)
-        print("matches",matches)
         return matches, unmatched_detections, unmatched_trackers       
         
     def get_iou_matrix(self, box_arr1, box_arr2):
@@ -171,8 +169,8 @@ class iou_tracker():
         box_arr1 : (numpy array) each row containing [x1,y1,x2,y2] coordinates
         box_arr2 : (numpy array) each row containing [x1,y1,x2,y2] coordinates
     
-        Returns:
-        (numpy array) The Intersect of Union scores for each pair of bounding boxes.
+        Returns
+        iou : (numpy array) The Intersect of Union scores for each pair of bounding boxes.
         """
         x11, y11, x12, y12 = np.split(box_arr1, 4, axis=1)
         x21, y21, x22, y22 = np.split(box_arr2, 4, axis=1)
@@ -185,31 +183,3 @@ class iou_tracker():
         boxBArea = (x22 - x21 + 1e-9) * (y22 - y21 + 1e-9)
         iou = interArea / (boxAArea + np.transpose(boxBArea) - interArea)
         return iou
-
-    def convert2relative(self,bbox):
-        """
-        Helper function to calculate left,top,right,bottom co-ordinates.
-
-        Args
-        bbox : bounding box containing tuple of co-ordinates.
-
-        Returns
-        left,top,right,bottom co-ordinates.
-        """
-        x, y, w, h  = bbox
-        _height = 416
-        _width = 416
-        x, y, w, h = x/_width,y/_height ,w/_width,h/_height
-        image_h, image_w = 640,480
-        orig_left    = int((x - w / 2.) * image_w)
-        orig_right   = int((x + w / 2.) * image_w)
-        orig_top     = int((y - h / 2.) * image_h)
-        orig_bottom  = int((y + h / 2.) * image_h)
-
-        if (orig_left < 0): orig_left = 0
-        if (orig_right > image_w - 1): orig_right = image_w - 1
-        if (orig_top < 0): orig_top = 0
-        if (orig_bottom > image_h - 1): orig_bottom = image_h - 1
-
-        return tuple((orig_left, orig_top, orig_right, orig_bottom))
-        
