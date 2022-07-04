@@ -5,17 +5,17 @@ import math
 
 class iou_pred_track(Track):
     def __init__(self, id, bbox, hits, miss):
-        self.history = [[0,0,0,0],[0,0,0,0],[0,0,0,0]]
+        self.history = np.array([[0,0,0,0],[0,0,0,0],[0,0,0,0]])
         Track.__init__(self, id, bbox, hits, miss)
 
     def iou_predict(self, bbox, history):
        
         self.history = history
-        h1 = (history[0][0] + history[1][0] + history[2][0])/3
-        h2 = (history[0][1] + history[1][1] + history[2][1])/3
-        h3 = (history[0][2] + history[1][2] + history[2][2])/3
-        h4 = (history[0][3] + history[1][3] + history[2][3])/3
-        print(bbox)
+        history_sum = list(np.sum(history,axis=0))
+        h1 = history_sum[0]/3
+        h2 = history_sum[1]/3
+        h3 = history_sum[2]/3
+        h4 = history_sum[3]/3
         area_ratio = abs(((h3-h1) * (h4-h2)) / ((bbox[2]-bbox[0]) * (bbox[3]-bbox[1])))
         bbox = list(bbox)
         bbox[0], bbox[1], bbox[2], bbox[3] = (bbox[0] + bbox[2])/2, (bbox[1] + bbox[3])/2, bbox[2] - bbox[0], bbox[3] - bbox[1]
@@ -25,10 +25,8 @@ class iou_pred_track(Track):
         y_offset = bbox[1] - h2
 
         predicted_bbox = [bbox[0] + x_offset, bbox[1] + y_offset, bbox[2] * math.sqrt(area_ratio), bbox[3] * math.sqrt(area_ratio)]
-        predicted_bbox = [predicted_bbox[0] - predicted_bbox[2]/ 2, predicted_bbox[1] - predicted_bbox[3]/ 2, predicted_bbox[0] + predicted_bbox[2]/ 2, predicted_bbox[1] + predicted_bbox[3]/ 2]
+        predicted_bbox = [predicted_bbox[0] - predicted_bbox[2]// 2, predicted_bbox[1] - predicted_bbox[3]// 2, predicted_bbox[0] + predicted_bbox[2]// 2, predicted_bbox[1] + predicted_bbox[3]// 2]
         
-        print(predicted_bbox)
-        print("-----------------------")
      
         return tuple(predicted_bbox)
 
@@ -106,12 +104,16 @@ class iou_pred_tracker():
                 predicts.append(predict_bbox)
             else:
                 predicts.append(list(trk.bbox))
-        matched, unmatched_dets, unmatched_trks = self.assign_detections_to_trackers(predicts, detections, iou_thrd = 0.3)  
-    
+        matched, unmatched_dets, unmatched_trks = self.assign_detections_to_trackers(predicts, detections, iou_thrd = 0.2)  
+        
+        range1 = self.tracks[0].history.shape[0]
         for trk, det in matched:
-            self.tracks[trk].history[0] = self.tracks[trk].history[1]
-            self.tracks[trk].history[1] = self.tracks[trk].history[2]
-            self.tracks[trk].history[2] = self.tracks[trk].bbox
+            for hist in range(range1):
+                if(hist == range1-1):
+                    self.tracks[trk].history[hist] = self.tracks[trk].bbox
+                    break        
+                self.tracks[trk].history[hist] = self.tracks[trk].history[hist+1]
+
             self.tracks[trk].bbox = detections[det]
             self.tracks[trk].hits += 1
             self.tracks[trk].miss = 0

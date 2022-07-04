@@ -1,5 +1,6 @@
 import cv2
 from Trackers.centroid_tracker.centroid import Centroid_tracker
+from Trackers.iou_tracker.iou import iou_tracker
 from Trackers.iou_pred_tracker.iou_pred import iou_pred_tracker
 from Detectors.YOLO import yolo
 from Trackers.utility import utility
@@ -21,6 +22,7 @@ if __name__ == "__main__":
     
     # Initiate tracker object
     # ot = Centroid_tracker()
+    # ot = iou_tracker()
     ot = iou_pred_tracker()
 
     # run the while loop
