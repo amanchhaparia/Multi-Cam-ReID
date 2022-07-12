@@ -5,6 +5,7 @@ import math
 
 class iou_pred_track(Track):
     def __init__(self, id, bbox, hits, miss):
+        self.history=[]
         Track.__init__(self, id, bbox, hits, miss)
 
     def iou_predict(self):
@@ -52,7 +53,6 @@ class iou_pred_tracker():
         """
         
         track = iou_pred_track(id, bbox , 1, 0)
-        track.history = []
         self.tracks.append(track)
         self.nextID += 1
         print("added id ",track.id, "succesfully")
