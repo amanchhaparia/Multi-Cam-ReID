@@ -6,10 +6,16 @@ import math
 class iou_pred_track(Track):
     def __init__(self, id, bbox, hits, miss):
         self.history=[]
+        self.hiscount = 5
         Track.__init__(self, id, bbox, hits, miss)
 
     def iou_predict(self):
-       
+        if(self.hits < self.hiscount):
+            self.history.append(self.bbox)
+            return self.bbox
+        else: 
+            self.history.pop(0)
+            self.history.append(self.bbox)
         bbox = self.bbox
         history = np.array(self.history)
         history_sum = list(np.sum(history,axis=0))
@@ -28,8 +34,7 @@ class iou_pred_track(Track):
 
         predicted_bbox = [bbox[0] + x_offset, bbox[1] + y_offset, bbox[2] * math.sqrt(area_ratio), bbox[3] * math.sqrt(area_ratio)]
         predicted_bbox = [predicted_bbox[0] - predicted_bbox[2]// 2, predicted_bbox[1] - predicted_bbox[3]// 2, predicted_bbox[0] + predicted_bbox[2]// 2, predicted_bbox[1] + predicted_bbox[3]// 2]
-        self.history.pop(0)
-        self.history.append(self.bbox)
+
         return tuple(predicted_bbox)
 
 class iou_pred_tracker():
@@ -99,12 +104,9 @@ class iou_pred_tracker():
             return self.tracks
         predicts = []
         for trk in self.tracks:
-            if(trk.hits > self.min_hits):
-                predict_bbox = trk.iou_predict()
-                predicts.append(predict_bbox)
-            else:
-                trk.history.append(trk.bbox)
-                predicts.append(list(trk.bbox))
+            predict_bbox = trk.iou_predict()
+            predicts.append(predict_bbox)
+
         matched, unmatched_dets, unmatched_trks = self.assign_detections_to_trackers(predicts, detections, iou_thrd = 0.2)  
         
         for trk, det in matched:
