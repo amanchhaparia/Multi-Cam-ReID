@@ -91,7 +91,7 @@ class iou_tracker():
             for trk_idx in unmatched_trks:
                 self.tracks[trk_idx].miss += 1
             self.delete_track()
-        result=[trk for trk in self.tracks if trk.hits>=self.min_hits]
+        result = [trk for trk in self.tracks if (trk.hits>=self.min_hits and trk.miss == 0)]
         return result
 
     def assign_detections_to_trackers(self, tracks, detections, iou_thrd = 0.3):

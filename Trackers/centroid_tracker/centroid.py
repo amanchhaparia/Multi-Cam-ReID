@@ -99,7 +99,7 @@ class Centroid_tracker():
             for col in unmatched_detections:
                 self.add_track(self.nextID, detections[col], inputCentroids[col])
         self.delete_track()
-        result=[trk for trk in self.tracks if trk.hits>=self.min_hits]
+        result = [trk for trk in self.tracks if (trk.hits>=self.min_hits and trk.miss == 0)]
         return result
 
     def assign_detections_to_trackers(self,objectCentroid,inputCentroids):
