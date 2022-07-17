@@ -10,7 +10,7 @@ class iou_pred_track(Track):
         Track.__init__(self, id, bbox, hits, miss)
 
     def iou_predict(self):
-        if(self.hits < self.hiscount):
+        if(len(self.history) < self.hiscount):
             self.history.append(self.bbox)
             return self.bbox
         else: 
