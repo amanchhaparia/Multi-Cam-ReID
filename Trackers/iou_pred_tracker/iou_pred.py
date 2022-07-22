@@ -1,16 +1,47 @@
 import numpy as np
 from ..track import Track
 from scipy.optimize import linear_sum_assignment as linear_assignment
+import math
 
-class iou_track(Track):
+class iou_pred_track(Track):
     def __init__(self, id, bbox, hits, miss):
+        self.history=[]
+        self.hiscount = 5
         Track.__init__(self, id, bbox, hits, miss)
 
-class iou_tracker():
+    def iou_predict(self):
+        if(len(self.history) < self.hiscount):
+            self.history.append(self.bbox)
+            return self.bbox
+        else: 
+            self.history.pop(0)
+            self.history.append(self.bbox)
+        bbox = self.bbox
+        history = np.array(self.history)
+        history_sum = list(np.sum(history,axis=0))
+        h1 = history_sum[0]/len(history)
+        h2 = history_sum[1]/len(history)
+        h3 = history_sum[2]/len(history)
+        h4 = history_sum[3]/len(history)
+
+        area_ratio = abs(((h3-h1) * (h4-h2)) / ((bbox[2]-bbox[0]) * (bbox[3]-bbox[1])))
+        bbox = list(bbox)
+        bbox[0], bbox[1], bbox[2], bbox[3] = (bbox[0] + bbox[2])/2, (bbox[1] + bbox[3])/2, bbox[2] - bbox[0], bbox[3] - bbox[1]
+        h1, h2, h3, h4 = (h1 + h3)/2, (h2 + h4)/2, h3 - h1, h4 - h2
+
+        x_offset = bbox[0] - h1
+        y_offset = bbox[1] - h2
+
+        predicted_bbox = [bbox[0] + x_offset, bbox[1] + y_offset, bbox[2] * math.sqrt(area_ratio), bbox[3] * math.sqrt(area_ratio)]
+        predicted_bbox = [predicted_bbox[0] - predicted_bbox[2]// 2, predicted_bbox[1] - predicted_bbox[3]// 2, predicted_bbox[0] + predicted_bbox[2]// 2, predicted_bbox[1] + predicted_bbox[3]// 2]
+
+        return tuple(predicted_bbox)
+
+class iou_pred_tracker():
     def __init__(self):
         self.tracks = []
         self.nextID = 0
-        self.max_age = 10
+        self.max_age = 50
         self.min_hits = 3
 
     def add_track(self, id, bbox):
@@ -26,7 +57,7 @@ class iou_tracker():
         None
         """
         
-        track = iou_track(id, bbox , 1, 0)
+        track = iou_pred_track(id, bbox , 1, 0)
         self.tracks.append(track)
         self.nextID += 1
         print("added id ",track.id, "succesfully")
@@ -71,13 +102,15 @@ class iou_tracker():
             for i in range(0, len(detections)):
                 self.add_track(self.nextID, detections[i])
             return self.tracks
-        tracks = []
+        predicts = []
         for trk in self.tracks:
-            tracks.append(trk.bbox)
-        matched, unmatched_dets, unmatched_trks = self.assign_detections_to_trackers(tracks, detections, iou_thrd = 0.3)  
-    
+            predict_bbox = trk.iou_predict()
+            predicts.append(predict_bbox)
+
+        matched, unmatched_dets, unmatched_trks = self.assign_detections_to_trackers(predicts, detections, iou_thrd = 0.2)  
+        
         for trk, det in matched:
-            self.tracks[trk].bbox= detections[det]
+            self.tracks[trk].bbox = detections[det]
             self.tracks[trk].hits += 1
             self.tracks[trk].miss = 0
         
@@ -91,7 +124,7 @@ class iou_tracker():
             for trk_idx in unmatched_trks:
                 self.tracks[trk_idx].miss += 1
             self.delete_track()
-        result = [trk for trk in self.tracks if (trk.hits>=self.min_hits and trk.miss == 0)]
+        result=[trk for trk in self.tracks if trk.hits>=self.min_hits]
         return result
 
     def assign_detections_to_trackers(self, tracks, detections, iou_thrd = 0.3):
