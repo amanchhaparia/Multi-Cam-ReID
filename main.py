@@ -1,6 +1,7 @@
 import cv2
 from Trackers.centroid_tracker.centroid import Centroid_tracker
 from Trackers.iou_tracker.iou import iou_tracker
+from Trackers.iou_pred_tracker.iou_pred import iou_pred_tracker
 from Detectors.YOLO import yolo
 from Trackers.utility import utility
 if __name__ == "__main__":
@@ -8,10 +9,10 @@ if __name__ == "__main__":
     # Add the arg parser
     
     # load the video
-    vs = cv2.VideoCapture("/home/ppspr/Videos/campus4-c0.avi")
+    vs = cv2.VideoCapture("/home/neel/Downloads/campus4-c0.avi")
 
-    cfg_file = "Detectors/YOLO/darknet/cfg/yolov4.cfg"
-    weight_file = "Detectors/YOLO/darknet/yolov4.weights"
+    cfg_file = "Detectors/YOLO/darknet/cfg/yolov4-tiny.cfg"
+    weight_file = "Detectors/YOLO/darknet/yolov4-tiny.weights"
     namesfile = "Detectors/YOLO/darknet/data/coco.names"
     datafile = "Detectors/YOLO/darknet/cfg/coco.data"
     class_names="Detectors/YOLO/darknet/data/coco.names"
@@ -21,7 +22,8 @@ if __name__ == "__main__":
     
     # Initiate tracker object
     # ot = Centroid_tracker()
-    ot = iou_tracker()
+    # ot = iou_tracker()
+    ot = iou_pred_tracker()
 
     # run the while loop
     while True:
