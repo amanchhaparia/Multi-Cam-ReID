@@ -15,7 +15,7 @@ Centroid Tracker works by calculating euclidean distance between existing object
 
 ### Flowchart
 
-<img src="../../assets/centroid_flowchart.png" alt="Centroid flowchart" style="width:200px;"/>
+<img src="../../assets/centroid_flowchart.png" alt="Centroid flowchart"/>
 
 ### Approach
 
@@ -56,4 +56,4 @@ pip install scipy
 
 ### Usage
 
-Just import and call class of `Centroid_tracker` in main.py and run `python main.py`.
+Import and call class of `Centroid_tracker` in main.py and run `python main.py`.

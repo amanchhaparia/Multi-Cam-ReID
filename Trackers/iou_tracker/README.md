@@ -30,7 +30,7 @@ So in our case ground-truth is trackers(precious frame), and predicted image is 
 
 ### Flowchart
 
-<img src="../../assets/iou_flowchart.png" alt="IoU flowchart" style="width:400px;"/>
+<img src="../../assets/iou_flowchart.png" alt="IoU flowchart"/>
 
 ### Approach
 
@@ -66,4 +66,4 @@ pip install scipy
 
 ### Usage
 
-Just import and call class of `iou_tracker` in main.py and run `python main.py`.
+Import and call class of `iou_tracker` in main.py and run `python main.py`.

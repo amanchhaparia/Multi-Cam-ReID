@@ -9,9 +9,10 @@
 ### Introduction: What is IoU-Predict Tracker?
 
 IoU_predict tracker works by calculating the Intersection over union(IoU) of on previous frames predicted bounding box co-ordinates by velocity model and current frame bounding box coordinates and later applying Hungarian algorithms to all the calculated IoU and we can set a minimum threshold value of IoU to match our detection with our previous tracks. So, this tracker is the same as the previous IoU tracker, but here we are trying to predict the bbox of the previous frames by using our linear velocity model and thus making our tracking more robust and this handles minor occlusions very effectively.
+
 ### Flowchart
 
-<img src="../../assets/iou_pred_flowchart.png" alt="IoU Predict flowchart" style="width:250px;"/>
+<img src="../../assets/iou_pred_flowchart.png" alt="IoU Predict flowchart"/>
 
 ### Approach
 
@@ -29,4 +30,4 @@ pip install scipy
 
 ### Usage
 
-Just import and call class of `Centroid_tracker` in main.py and run `python main.py`.
+Import and call class of `Centroid_tracker` in main.py and run `python main.py`.
