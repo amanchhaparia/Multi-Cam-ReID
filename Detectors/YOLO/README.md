@@ -12,7 +12,7 @@ YOLO is an abbreviation for the term 'You Only Look Once'. This is an algorithm 
 
 ### Flowchart
 
-<img src="../assets/Yolo_flowchart.png" alt="Yolo flowchart"/>
+<img src="../../assets/Yolo_flowchart.png" alt="Yolo flowchart"/>
 
 ### Approach
 
