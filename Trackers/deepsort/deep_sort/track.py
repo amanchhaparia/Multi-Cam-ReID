@@ -47,7 +47,7 @@ class Track:
         Mean vector of the initial state distribution.
     covariance : ndarray
         Covariance matrix of the initial state distribution.
-    track_id : int
+    id : int
         A unique track identifier.
     hits : int
         Total number of measurement updates.
@@ -67,7 +67,7 @@ class Track:
                  feature=None, class_name=None):
         self.mean = mean
         self.covariance = covariance
-        self.track_id = track_id
+        self.id = track_id
         self.hits = 1
         self.age = 1
         self.time_since_update = 0
@@ -80,6 +80,7 @@ class Track:
         self._n_init = n_init
         self._max_age = max_age
         self.class_name = class_name
+        self.bbox = []
 
     def to_tlwh(self):
         """Get current position in bounding box format `(top left x, top left y,
@@ -108,6 +109,7 @@ class Track:
         """
         ret = self.to_tlwh()
         ret[2:] = ret[:2] + ret[2:]
+        ret = [int(s) for s in ret]
         return ret
     
     def get_class(self):

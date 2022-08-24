@@ -1,4 +1,3 @@
-# vim: expandtab:ts=4:sw=4
 import os
 import errno
 import argparse
