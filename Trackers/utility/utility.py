@@ -14,7 +14,6 @@ def draw_box(detections, image):
     
     for bbox, id in detections:
         left, top, right, bottom = bbox
-        # left, top, right, bottom = int(left), int(top), int(right), int(bottom)
-        cv2.rectangle(image, (left, top), (right, bottom), [255,0,0], 1)
-        cv2.putText(image, f"id : {id} ", (left, top - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, [0, 255, 0], 2)
+        cv2.rectangle(image, (int(left), int(top)), (int(right), int(bottom)), [255,0,0], 1)
+        cv2.putText(image, f"id : {id} ", (int(left), int(top - 5)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, [0, 255, 0], 2)
     return image
