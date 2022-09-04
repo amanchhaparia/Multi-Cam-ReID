@@ -26,7 +26,7 @@ if __name__ == "__main__":
     # Initiate tracker object
     # ot = Centroid_tracker()
     # ot = iou_tracker()
-    ot = iou_pred_tracker()
+    # ot = iou_pred_tracker()
 
     max_cosine_distance = 0.4
     nn_budget = None

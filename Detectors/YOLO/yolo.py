@@ -11,6 +11,8 @@ class Yolo():
     def __init__(self, cfgfile, weightfile, name_file, data_file):
         self.cfg_file,self.weight_file, self.namesfile ,self.datafile = cfgfile, weightfile, name_file, data_file
         self.load_model()
+        model_filename = './Trackers/deepsort/model_data/mars-small128.pb'
+        self.encoder = gdet.create_box_encoder(model_filename, batch_size=1)
 
     def load_model(self):
         """
@@ -38,7 +40,7 @@ class Yolo():
                                 interpolation=cv2.INTER_LINEAR)
         darknet.copy_image_from_bytes(darknet_image, image_resized.tobytes())
         detections = darknet.detect_image(self.model, self.class_names, darknet_image)
-
+        darknet.free_image(darknet_image)
         dect_list=[]
         for dect in detections:
             if(dect[0]== 'person'):
@@ -66,7 +68,7 @@ class Yolo():
                                 interpolation=cv2.INTER_LINEAR)
         darknet.copy_image_from_bytes(darknet_image, image_resized.tobytes())
         detections = darknet.detect_image(self.model, self.class_names, darknet_image)
-        # darknet.free_image(darknet_image)
+        darknet.free_image(darknet_image)
         dect_list=[]
         bboxes = []
         scores = []
@@ -80,9 +82,7 @@ class Yolo():
                 names.append(dect[0])
                 scores.append(dect[1])
 
-        model_filename = './Trackers/deepsort/model_data/mars-small128.pb'
-        encoder = gdet.create_box_encoder(model_filename, batch_size=1)
-        features = encoder(image, dect_list)
+        features = self.encoder(image, dect_list)
         detections = [Detector(bbox, score, class_name, feature) for bbox, score, class_name, feature in zip(bboxes, scores, names, features)]
 
         # run non-maxima supression
