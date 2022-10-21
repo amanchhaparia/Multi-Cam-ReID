@@ -13,7 +13,7 @@ class iou_pred_track(Track):
         if(len(self.history) < self.hiscount):
             self.history.append(self.bbox)
             return self.bbox
-        else: 
+        elif(self.miss == 0): 
             self.history.pop(0)
             self.history.append(self.bbox)
         bbox = self.bbox
@@ -35,6 +35,10 @@ class iou_pred_track(Track):
         predicted_bbox = [bbox[0] + x_offset, bbox[1] + y_offset, bbox[2] * math.sqrt(area_ratio), bbox[3] * math.sqrt(area_ratio)]
         predicted_bbox = [predicted_bbox[0] - predicted_bbox[2]// 2, predicted_bbox[1] - predicted_bbox[3]// 2, predicted_bbox[0] + predicted_bbox[2]// 2, predicted_bbox[1] + predicted_bbox[3]// 2]
 
+        if(self.miss > 1):
+            self.history.pop(0)
+            self.history.append(predicted_bbox)
+        
         return tuple(predicted_bbox)
 
 class iou_pred_tracker():
