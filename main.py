@@ -4,6 +4,9 @@ from Trackers.iou_tracker.iou import iou_tracker
 from Trackers.iou_pred_tracker.iou_pred import iou_pred_tracker
 from Detectors.YOLO import yolo
 from Trackers.utility import utility
+from Trackers.deepsort.deep_sort import nn_matching
+from Trackers.deepsort.deep_sort.tracker import DeepSortTracker
+
 if __name__ == "__main__":
     
     # Add the arg parser
@@ -23,7 +26,13 @@ if __name__ == "__main__":
     # Initiate tracker object
     # ot = Centroid_tracker()
     # ot = iou_tracker()
-    ot = iou_pred_tracker()
+    # ot = iou_pred_tracker()
+
+    max_cosine_distance = 0.4
+    nn_budget = None
+    nms_max_overlap = 1.0
+    metric = nn_matching.NearestNeighborDistanceMetric("cosine", max_cosine_distance, nn_budget)
+    ot = DeepSortTracker(metric)
 
     # run the while loop
     while True:
@@ -33,8 +42,10 @@ if __name__ == "__main__":
             break
         frame = cv2.resize(frame,(640,480))
         # run detection and get bbox
-        detections = dect.detect(frame)
+        # detections = dect.detect(frame)
+        detections = dect.detect_deepsort(frame)
         # run tracker update to get tracked tracks
+        ot.predict()
         track_list = ot.update(detections)
         detections = []
         for track in track_list:
