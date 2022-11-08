@@ -9,7 +9,7 @@ if __name__ == "__main__":
     # Add the arg parser
     
     # load the video
-    vs = cv2.VideoCapture("/home/ppspr/Videos/campus4-c0.avi")
+    vs = cv2.VideoCapture("/home/aman/Desktop/Airpix/Multi-Camera-Person-Tracking-and-Re-Identification/videos/init/4p-c2.avi")
 
     cfg_file = "Detectors/YOLO/darknet/cfg/yolov4.cfg"
     weight_file = "Detectors/YOLO/darknet/yolov4.weights"
