@@ -33,6 +33,7 @@ class Yolo():
                                 interpolation=cv2.INTER_LINEAR)
         darknet.copy_image_from_bytes(darknet_image, image_resized.tobytes())
         detections = darknet.detect_image(self.model, self.class_names, darknet_image)
+        darknet.free_detections(darknet_image)
         dect_list=[]
         for dect in detections:
             if(dect[0]== 'person'):

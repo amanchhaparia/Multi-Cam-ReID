@@ -42,4 +42,6 @@ if __name__ == "__main__":
         res = utility.draw_box(detections, frame)
         cv2.imshow("result",res)
         if cv2.waitKey(1) & 0xFF == ord('q'):
+            cv2.destroyAllWindows()
+            vs.release()
             break
