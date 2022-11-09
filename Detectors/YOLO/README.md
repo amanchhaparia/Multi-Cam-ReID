@@ -34,3 +34,18 @@ Extract useful information from detections list.
 ### Installation
 
 >build darknet(https://medium.com/geekculture/yolov4-darknet-installation-and-usage-on-your-system-windows-linux-8dec2cea6e81#a59a)
+
+Changes in the make file as mentioned in the link above.
+
+```
+cd Detectors/YOLO/darknet
+cmake ./
+make
+```
+
+```
+cd Detectors/YOLO/darknet
+wget https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v3_optimal/yolov4.weights
+```
+Error: Couldn't find data/coco.names   
+Solution: edit the file path in darknet/cfg/coco.data
