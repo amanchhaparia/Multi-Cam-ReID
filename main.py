@@ -1,6 +1,7 @@
 import cv2
 from Trackers.centroid_tracker.centroid import Centroid_tracker
 from Trackers.iou_tracker.iou import iou_tracker
+from Trackers.sort.sort import Sort
 from Trackers.iou_pred_tracker.iou_pred import iou_pred_tracker
 from Detectors.YOLO import yolo
 from Trackers.utility import utility
@@ -9,6 +10,7 @@ if __name__ == "__main__":
     # Add the arg parser
     
     # load the video
+
     vs = cv2.VideoCapture("/home/aman/Desktop/Airpix/Multi-Camera-Person-Tracking-and-Re-Identification/videos/init/4p-c2.avi")
 
     cfg_file = "Detectors/YOLO/darknet/cfg/yolov4.cfg"
@@ -23,8 +25,9 @@ if __name__ == "__main__":
     # Initiate tracker object
     # ot = Centroid_tracker()
     # ot = iou_tracker()
-    ot = iou_pred_tracker()
-
+    # ot = iou_pred_tracker()
+    ot = Sort()
+    
     # run the while loop
     while True:
         # Read frame 
