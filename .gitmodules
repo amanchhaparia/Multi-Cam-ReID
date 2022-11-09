@@ -1,0 +1,3 @@
+[submodule "Detectors/YOLO/darknet"]
+	path = Detectors/YOLO/darknet
+	url = https://github.com/AlexeyAB/darknet

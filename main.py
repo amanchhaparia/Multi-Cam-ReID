@@ -10,9 +10,11 @@ if __name__ == "__main__":
     # Add the arg parser
     
     # load the video
-    vs = cv2.VideoCapture("/home/dhruv/Downloads/campus4-c0.avi")
-    cfg_file = "Detectors/YOLO/darknet/cfg/yolov4-tiny.cfg"
-    weight_file = "Detectors/YOLO/darknet/yolov4-tiny.weights"
+
+    vs = cv2.VideoCapture("/home/aman/Desktop/Airpix/Multi-Camera-Person-Tracking-and-Re-Identification/videos/init/4p-c2.avi")
+
+    cfg_file = "Detectors/YOLO/darknet/cfg/yolov4.cfg"
+    weight_file = "Detectors/YOLO/darknet/yolov4.weights"
     namesfile = "Detectors/YOLO/darknet/data/coco.names"
     datafile = "Detectors/YOLO/darknet/cfg/coco.data"
     class_names="Detectors/YOLO/darknet/data/coco.names"
@@ -43,4 +45,6 @@ if __name__ == "__main__":
         res = utility.draw_box(detections, frame)
         cv2.imshow("result",res)
         if cv2.waitKey(1) & 0xFF == ord('q'):
+            cv2.destroyAllWindows()
+            vs.release()
             break
